@@ -2,6 +2,8 @@ title Snail Boxes
 author vexorian
 homepage vexorian.dev
 
+background_color #25272a
+text_color #c9814b
 runtime_metadata_twiddling
 run_rules_on_level_start
 key_repeat_interval 0.25
@@ -17,6 +19,7 @@ not_red = blue yellow
 not_blue = red yellow
 not_yellow = red blue
 
+m4          = n0 n1 n2 n3
 even_number = n0 n2 n4 n6 n8
 odd_number  = n1 n3 n5 n7 n9
 not_white   = blue yellow red
@@ -67,23 +70,23 @@ copy:Block:white
 
 
 Player
-#25272a #b2af5c
+#25272a #b2af5c #dbc1af 
+.......00.......
+.....000000.....
+.....011110.....
+.....011110.....
+.....000000.....
+......0220......
 ...0000000000...
-..011111111110..
-.01111111111110.
-0111111111111110
-0111111111111110
-0111111111111110
-0111111111111110
-0111111111111110
-0111111111111110
-0111111111111110
-0111111111111110
-0111111111111110
-0111111111111110
-.01111111111110.
-..011111111110..
+0000222222220000
+0220211111120220
+0220211111120220
+0220211111120220
+0000211111120000
+...0222222220...
 ...0000000000...
+....020..020....
+....000..000....
 
 Target:even_number
 #25272a
@@ -159,36 +162,94 @@ OpenDoor:odd_number
 .0.0.0....0.0.0.
 ................
 
-Painted:yellow
+Painted:yellow:n0
 #e0b94a
+0000000000000000
+00000000000000.0
+000000000000.000
+00000000000000.0
 0000000000000.00
 0000000000000000
 0000000000000000
+0000000000000000
+000000.000000000
+0000000000000000
+0000000000000000
+0.00000000000.00
+000000000000.000
+0000000000000000
+0000000000000000
+0000000000000000
+
+Painted:yellow:n1
+#e0b94a
+000000.000000000
+0000000000000000
+0000000000000000
+0000000.00000000
+0000000000000000
+0000000000000000
+.000000.00000000
+0000000000000000
+0000000000000000
+0000000000000000
+0000000000000000
 .000000000000000
+0.00000000000000
+0000000000000000
+000000000000000.
+0000000.0.000000
+
+Painted:yellow:n2
+#e0b94a
+0000000000000000
+0000000.00000000
 000000000.000000
+000000.000000000
+0000.00000000000
+0000000000000000
+00000000000.0000
+0000000000000000
+00000000.0000000
+0000000000000000
+00000000000000.0
+.000000000000000
+.000000000000000
+000000.000000000
+0000000000000000
+000.000000000.00
+
+Painted:yellow:n3
+#e0b94a
+0.00000000000000
+0..0000000000000
+0000000000000000
+0.00000000000000
+00000000000.0000
 0000000000000000
 0000000000000000
+0000000000000000
+00000000.0000000
+0000000000000000
+.000.00000000000
+0000000000.00000
 0000000000000000
 .000000000000000
-0000000000000000
+.000000000000000
 00000.0000000000
-0000000000000000
-0000000000000000
-0000000000000000
-.00000000000000.
-00000.00.0000000
 
-Painted:red
+
+Painted:red:m4
 #cf6a4f
-copy:Painted:yellow
+copy:Painted:yellow:m4
 
-Painted:blue
+Painted:blue:m4
 #9b6970
-copy:Painted:yellow
+copy:Painted:yellow:m4
 
-Painted:white
+Painted:white:m4
 #dda963 
-copy:Painted:yellow
+copy:Painted:yellow:m4
 
 Wall
 #c9814b #9b6970 #25272a
@@ -268,9 +329,9 @@ LEGEND
 
 . = Background
 P = Player       and Background
-R = Block:red    and Background and Painted:red
-Y = Block:yellow and Background and Painted:yellow
-B = Block:blue   and Background and Painted:blue
+R = Block:red    and Background and Painted:red:n0
+Y = Block:yellow and Background and Painted:yellow:n1
+B = Block:blue   and Background and Painted:blue:n2
 # = Wall         and Background 
 W = Block:white  and Background
 
@@ -315,13 +376,13 @@ Solid cantmove right afx:slide 78589302
 Solid cantmove up    afx:slide 78589302
 Solid cantmove down  afx:slide 78589302
 
-Painted:color action afx:zoom
+Painted:color:m4 action afx:zoom
 
 ClosedDoor create  79214904
 ClosedDoor destroy 7734102
 
-Painted:not_white destroy 72150108
-Painted:not_white create  29387308
+Painted:not_white:m4 destroy 72150108
+Painted:not_white:m4 create  29387308
 
 ================
 COLLISIONLAYERS
@@ -330,7 +391,7 @@ COLLISIONLAYERS
 InvisibleCheckPoint
 New
 Background
-Painted:color
+Painted:color:m4
 Target:even_number, OpenDoor:odd_number 
 Goal
 Solid
@@ -350,28 +411,28 @@ RULES
 [ NotOpeningDoor:color ] -> []
 [ Target:even_number no Solid ] -> [ Target:even_number New ]
 
-color [ Block:color ] -> [ Block:color Painted:color ]
+color [ Block:color no Painted:color:m4 ] -> [ Block:color random Painted:color:m4 ]
 
 rigid color [ >  Player | Block:color ] -> [ > Player | > Block:color ]
 rigid [ > Block:color | Block:color ] -> [ > Block:color | > Block:color ]
 
-[ > Block:red    | Painted:not_red    Solid ] -> [ < Block:red    | action Painted:not_red    stationary Solid ]
-[ > Block:yellow | Painted:not_yellow Solid ] -> [ < Block:yellow | action Painted:not_yellow stationary Solid ]
-[ > Block:blue   | Painted:not_blue   Solid ] -> [ < Block:blue   | action Painted:not_blue   stationary Solid ]
+[ > Block:red    | Painted:not_red:m4    Solid ] -> [ < Block:red    | action Painted:not_red:m4    stationary Solid ]
+[ > Block:yellow | Painted:not_yellow:m4 Solid ] -> [ < Block:yellow | action Painted:not_yellow:m4 stationary Solid ]
+[ > Block:blue   | Painted:not_blue:m4   Solid ] -> [ < Block:blue   | action Painted:not_blue:m4   stationary Solid ]
 
-[ > Block:red    | Painted:not_red    no Solid ] -> [ > Block:red    | action Painted:not_red    Blocker ]
-[ > Block:yellow | Painted:not_yellow no Solid ] -> [ > Block:yellow | action Painted:not_yellow Blocker ]
-[ > Block:blue   | Painted:not_blue   no Solid ] -> [ > Block:blue   | action Painted:not_blue   Blocker ]
+[ > Block:red    | Painted:not_red:m4    no Solid ] -> [ > Block:red    | action Painted:not_red:m4    Blocker ]
+[ > Block:yellow | Painted:not_yellow:m4 no Solid ] -> [ > Block:yellow | action Painted:not_yellow:m4 Blocker ]
+[ > Block:blue   | Painted:not_blue:m4   no Solid ] -> [ > Block:blue   | action Painted:not_blue:m4   Blocker ]
 
 
 late even_number [ Target:even_number no Solid ][ OpenDoor:door_number ] -> [ Target:even_number ][ OpenDoor:door_number New ]
 late [ ClosedDoor no New ] -> []
 late [ OpenDoor:odd_number New no Solid ] -> [ OpenDoor:odd_number ClosedDoor ]
 late [ Blocker ] -> []
-late color [ Block:color ] -> [ Block:color Painted:color ]
+late color [ Block:color no Painted:color:m4 ] -> [ Block:color random Painted:color:m4 ]
 
-late [ OpenDoor:odd_number no Painted:color ] -> [ OpenDoor:odd_number Painted:white ]
-late color even_number [ Target:even_number New Solid ][ ClosedDoor OpenDoor:door_number Painted:color no NotOpeningDoor:color ] -> [ Target:even_number New Solid ][ ClosedDoor OpenDoor:door_number Painted:color NotOpeningDoor:color ] 
+late [ OpenDoor:odd_number no Painted:color:m4 ] -> [ OpenDoor:odd_number Painted:white:n0 ]
+late color even_number [ Target:even_number New Solid ][ ClosedDoor OpenDoor:door_number Painted:color:m4 no NotOpeningDoor:color ] -> [ Target:even_number New Solid ][ ClosedDoor OpenDoor:door_number Painted:color:m4 NotOpeningDoor:color ] 
 
 late [ New ] -> []
 late [ Player InvisibleCheckPoint ] -> [ Player ] checkpoint
@@ -391,8 +452,8 @@ LEVELS
 
 
 ######################
-#########00#...#####4#
-#.......#..#.....#...#
+#########00#...#######
+#.......#..#.....#..4#
 #.......#..11.2..3.y.#
 #.BB..#.#..##....#..4#
 #####.R.....wb#..#5###
@@ -400,9 +461,9 @@ LEVELS
 #Q..#####..##.#.y....#
 #7###.############.###
 #......#...9...8....##
-#.y....#.$.9.#.r.#...#
-#####6##...#.#b#.b.#.#
-#....R.#####....r..88#
+#.y....#.$.9.#.R.#...#
+#####6##...#.#.#.B.#.#
+#....R.#####.B.R...88#
 #..P...###88..#..#####
 ######################
 
@@ -423,7 +484,7 @@ LEVELS
 )
 
 
-
+Message Good Job!
 
 
 
