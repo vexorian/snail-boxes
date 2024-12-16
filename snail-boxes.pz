@@ -1,6 +1,6 @@
-title Snail Boxes
+title Snail Boxes 0.2
 author vexorian
-homepage vexorian.dev
+homepage vexorian.itch.io
 
 background_color #25272a
 text_color #c9814b
@@ -8,27 +8,29 @@ runtime_metadata_twiddling
 run_rules_on_level_start
 key_repeat_interval 0.25
 sprite_size 16
-
+status_line
 
 ========
 TAGS
 ========
 
 color = red blue yellow white
-not_red = blue yellow
-not_blue = red yellow
-not_yellow = red blue
+not_white = blue yellow red
+
+
 
 m4          = n0 n1 n2 n3
 even_number = n0 n2 n4 n6 n8
 odd_number  = n1 n3 n5 n7 n9
-not_white   = blue yellow red
 not_left    = up down right
+
 ========
 MAPPINGS
 ========
 even_number    => door_number
 n0 n2 n4 n6 n8 -> n1 n3 n5 n7 n9
+color => not_color
+
 
 ========
 OBJECTS
@@ -92,39 +94,62 @@ Target:even_number
 #25272a
 ................
 ................
-................
-...0............
-..000......00...
-...000....00....
-....000..00.....
-.....00000......
-......000.......
-.....00000......
-....00..000.....
-...00....000....
-..00......0.....
-.00.............
+..000......0....
+...000....000...
+....000..000....
+.....000000.....
+......0000......
+.......000......
+......00000.....
+.....000.000....
+....000...000...
+...000.....000..
+..000.......0...
+..00............
 ................
 ................
 
+
+
+
+
 ClosedDoor
 #25272a transparent
-1010101111010101
+1101101111011011
+1101101111011011
 0000000000000000
-1010101111010101
+1101101111011011
+1101101111011011
 0000000000000000
-1010101111010101
+1101101111011011
+1101101111011011
+1101101111011011
+1101101111011011
 0000000000000000
-1010101111010101
-1010101111010101
-1010101111010101
-1010101111010101
+1101101111011011
+1101101111011011
 0000000000000000
-1010101111010101
-0000000000000000
-1010101111010101
-0000000000000000
-1010101111010101
+1101101111011011
+1101101111011011
+
+OpenDoor:odd_number
+#25272a transparent
+................
+................
+..0..0....0..0..
+................
+................
+..0..0....0..0..
+................
+................
+................
+................
+..0..0....0..0..
+................
+................
+..0..0....0..0..
+................
+................
 
 NotOpeningDoor:white
 #25272a #dda963
@@ -141,26 +166,6 @@ copy:ClosedDoor
 NotOpeningDoor:blue
 #25272a #9b6970
 copy:ClosedDoor
-
-
-OpenDoor:odd_number
-#25272a
-................
-.0.0.0....0.0.0.
-................
-.0.0.0....0.0.0.
-................
-.0.0.0....0.0.0.
-................
-................
-................
-................
-.0.0.0....0.0.0.
-................
-.0.0.0....0.0.0.
-................
-.0.0.0....0.0.0.
-................
 
 Painted:yellow:n0
 #e0b94a
@@ -323,6 +328,9 @@ InvisibleCheckPoint
 transparent
 
 
+CantMove:directions
+transparent
+
 =======
 LEGEND
 =======
@@ -351,7 +359,8 @@ Q = InvisibleCheckpoint
 
 $ = Goal         and Background
 
-SOLID = Player or Block:color or Wall or ClosedDoor or Blocker
+Solid = Player or Block:color or Wall or ClosedDoor or Blocker
+Movable = Player or Block:color
 
 
 
@@ -384,10 +393,16 @@ ClosedDoor destroy 7734102
 Painted:not_white:m4 destroy 72150108
 Painted:not_white:m4 create  29387308
 
+InvisibleCheckPoint destroy 89412306
+
 ================
 COLLISIONLAYERS
 ================
 
+CantMove:up
+CantMove:left
+CantMove:right
+CantMove:down
 InvisibleCheckPoint
 New
 Background
@@ -405,6 +420,8 @@ NotOpeningDoor:color
 RULES
 ======
 
+[ Player Goal ] -> cancel
+
 [ Wall | no Wall ] -> [ Wall Border:> | no Wall ]
 
 
@@ -413,37 +430,46 @@ RULES
 
 color [ Block:color no Painted:color:m4 ] -> [ Block:color random Painted:color:m4 ]
 
-rigid color [ >  Player | Block:color ] -> [ > Player | > Block:color ]
-rigid [ > Block:color | Block:color ] -> [ > Block:color | > Block:color ]
 
-[ > Block:red    | Painted:not_red:m4    Solid ] -> [ < Block:red    | action Painted:not_red:m4    stationary Solid ]
-[ > Block:yellow | Painted:not_yellow:m4 Solid ] -> [ < Block:yellow | action Painted:not_yellow:m4 stationary Solid ]
-[ > Block:blue   | Painted:not_blue:m4   Solid ] -> [ < Block:blue   | action Painted:not_blue:m4   stationary Solid ]
+(Now here's the thing, I wanted to have the movement rules about blocks not being able to move to squares
+with a different color. But I also wanted psnext to handle the animations, hence why these rules are
+a bit more complex than you'd expect. )
+[ CantMove:directions ] -> []
 
-[ > Block:red    | Painted:not_red:m4    no Solid ] -> [ > Block:red    | action Painted:not_red:m4    Blocker ]
-[ > Block:yellow | Painted:not_yellow:m4 no Solid ] -> [ > Block:yellow | action Painted:not_yellow:m4 Blocker ]
-[ > Block:blue   | Painted:not_blue:m4   no Solid ] -> [ > Block:blue   | action Painted:not_blue:m4   Blocker ]
+( A block of a color different to white can't be pushed to a painted:color of a color different to white and different to the color )
+not_white [ Block:not_white | Painted:color:m4 no Painted:not_white:m4 no Painted:white:m4 ] -> [ Block:not_white CantMove:> | Painted:color:m4 ]
 
 
+( Only spread the movement if the move is actually valid)
+[ > Movable no CantMove:> | Movable ] -> [ > Movable | > Movable ]
+( Since the block is already in a moving state, we need to block it somehow, if we want animation,
+we create an invisible wall in that location)
+[ > Movable CantMove:> | no Solid ] -> [ > Movable CantMove:> | Blocker ]
+( We also want the paint on the  ground to get an animation so that it is more obvious to the player
+why the block(s) didn't move)
+[ > Movable CantMove:> | Painted:color:m4 ] -> [ > Movable | action Painted:color:m4 ]
+
+
+late [ Blocker ] -> []
 late even_number [ Target:even_number no Solid ][ OpenDoor:door_number ] -> [ Target:even_number ][ OpenDoor:door_number New ]
 late [ ClosedDoor no New ] -> []
 late [ OpenDoor:odd_number New no Solid ] -> [ OpenDoor:odd_number ClosedDoor ]
-late [ Blocker ] -> []
+
 late color [ Block:color no Painted:color:m4 ] -> [ Block:color random Painted:color:m4 ]
 
 late [ OpenDoor:odd_number no Painted:color:m4 ] -> [ OpenDoor:odd_number Painted:white:n0 ]
 late color even_number [ Target:even_number New Solid ][ ClosedDoor OpenDoor:door_number Painted:color:m4 no NotOpeningDoor:color ] -> [ Target:even_number New Solid ][ ClosedDoor OpenDoor:door_number Painted:color:m4 NotOpeningDoor:color ] 
 
 late [ New ] -> []
-late [ Player InvisibleCheckPoint ] -> [ Player ] checkpoint
+late [ Player InvisibleCheckPoint ] -> [ Player ] checkpoint status Checkpoint
 
-late [ Player Goal ] -> SFX1
+late [ Player Goal ] -> SFX1 status See You Space Cowboy...
 
 ==============
 WINCONDITIONS
 ==============
 
-All Player on Goal
+
 
 
 =======
@@ -452,19 +478,19 @@ LEVELS
 
 
 ######################
-#########00#...#######
+#########00#.....#####
 #.......#..#.....#..4#
 #.......#..11.2..3.y.#
-#.BB..#.#..##....#..4#
-#####.R.....wb#..#5###
-#......0...#..##y#5###
+#..B..#.#..##Q...#..4#
+#####.R.B...wb#..##5##
+#......0...#..##y#555#
 #Q..#####..##.#.y....#
 #7###.############.###
 #......#...9...8....##
 #.y....#.$.9.#.R.#...#
 #####6##...#.#.#.B.#.#
-#....R.#####.B.R...88#
-#..P...###88..#..#####
+#...RR.#####.B.R...88#
+#.P....###88..#..#####
 ######################
 
 (
